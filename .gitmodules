@@ -1,0 +1,3 @@
+[submodule "External/ggpo"]
+	path = External/ggpo
+	url = https://github.com/JacKAsterisK/ggpo_steam.git

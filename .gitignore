@@ -21,3 +21,4 @@ ThirdParty/lib
 Package/
 enc_temp_folder/
 _build
+.sln

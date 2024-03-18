@@ -5,7 +5,9 @@ using UnrealBuildTool;
 
 public class GGPOSteam : ModuleRules
 {
-	public GGPOSteam(ReadOnlyTargetRules Target) : base(Target)
+    const string STEAMWORKS_VERSION = "153";
+
+    public GGPOSteam(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -66,6 +68,16 @@ public class GGPOSteam : ModuleRules
     {
         get { return Path.GetFullPath(Path.Combine(ProjectRootPath, "External/")); }
     }
+    private string SteamworksPath
+    {
+        get
+        {
+            string EngineDir = Path.GetFullPath(Target.RelativeEnginePath);
+            return Path.Combine(EngineDir, "Source", "ThirdParty", "Steamworks", $"Steamv{STEAMWORKS_VERSION}", "sdk");
+
+            //return Path.Combine(ExternalPath, "ggpo/external/steamworks/sdk");
+        }
+    }
 
     protected void AddGGPO()
     {
@@ -85,9 +97,11 @@ public class GGPOSteam : ModuleRules
         // --------------------------------------------------------------
         System.Console.WriteLine("Building GGPO library...");
 
-        string BuildScriptPath = Path.Combine(ProjectRootPath, "spr.ps1");
+        string BuildScriptPath = Path.Combine(ProjectRootPath, "BuildGGPO.ps1");
         string BuildScriptConfig = bDebug ? "Debug" : "Release";
-        string BuildCommand = $"powershell -ExecutionPolicy Bypass -File {BuildScriptPath} -RunFunction \"BuildGGPO\" -BuildConfig \"{BuildScriptConfig}\"";
+        string BuildCommand = $"powershell -ExecutionPolicy Bypass -File {BuildScriptPath} -BuildConfig \"{BuildScriptConfig}\" -SteamworksPath \"{SteamworksPath}\"";
+
+        System.Console.WriteLine(BuildCommand);
 
         // Execute the PowerShell command
         var StartInfo = new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c " + BuildCommand);
