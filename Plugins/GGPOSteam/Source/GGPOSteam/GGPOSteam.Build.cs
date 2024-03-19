@@ -15,23 +15,25 @@ public class GGPOSteam : ModuleRules
 			new string[] {
 				// ... add public include paths required here ...
 			}
-			);
+		);
 				
 		
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
 			}
-			);
+		);
 			
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"Core",
-				// ... add other public dependencies that you statically link with here ...
-			}
-			);
+                "OnlineSubsystem",
+                "OnlineSubsystemSteam",
+                "Steamworks",
+            }
+		);
 			
 		
 		PrivateDependencyModuleNames.AddRange(
@@ -43,7 +45,7 @@ public class GGPOSteam : ModuleRules
 				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
-			);
+		);
 		
 		
 		DynamicallyLoadedModuleNames.AddRange(
@@ -51,7 +53,7 @@ public class GGPOSteam : ModuleRules
 			{
 				// ... add any modules that your module loads dynamically here ...
 			}
-			);
+		);
 
         AddGGPO();
     }
@@ -88,9 +90,15 @@ public class GGPOSteam : ModuleRules
 
         // Library path
         string LibrariesPath = Path.Combine(ExternalPath, "ggpo/build/lib/x64", BuildFolder);
-        PublicAdditionalLibraries.Add(Path.Combine(LibrariesPath, "GGPO.lib"));
 
-        PublicIncludePaths.Add(Path.Combine(ExternalPath, "ggpo/src/include"));
+        string GGPOLib = Path.Combine(LibrariesPath, "GGPO.lib");
+        string GGPOInclude = Path.Combine(ExternalPath, "ggpo/src/include");
+
+        System.Console.WriteLine("GGPO Library Path: " + GGPOLib);
+        System.Console.WriteLine("GGPO Include Path: " + GGPOInclude);
+
+        PublicAdditionalLibraries.Add(GGPOLib);
+        PublicIncludePaths.Add(GGPOInclude);
 
         // --------------------------------------------------------------
         // Build GGPO

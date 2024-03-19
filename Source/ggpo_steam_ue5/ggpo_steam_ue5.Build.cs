@@ -8,7 +8,7 @@ public class ggpo_steam_ue5 : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "GGPOSteam", });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
