@@ -5,7 +5,7 @@
 	"Description": "",
 	"Modules": [
 		{
-			"Name": "ggpo_steam_ue5",
+			"Name": "GGPOSteamUETemplate",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

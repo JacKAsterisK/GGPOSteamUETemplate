@@ -2,9 +2,9 @@
 
 using UnrealBuildTool;
 
-public class ggpo_steam_ue5 : ModuleRules
+public class GGPOSteamUETemplate : ModuleRules
 {
-	public ggpo_steam_ue5(ReadOnlyTargetRules Target) : base(Target)
+	public GGPOSteamUETemplate(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
