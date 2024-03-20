@@ -58,9 +58,13 @@ public class GGPOSteam : ModuleRules
         AddGGPO();
     }
 
+    private string PluginRootPath
+    {
+        get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../../")); }
+    }
     private string ProjectRootPath
     {
-        get { return Path.GetFullPath(Path.Combine(ModuleDirectory, "../../../../")); }
+        get { return Path.GetFullPath(Path.Combine(PluginRootPath, "../../")); }
     }
     private string ThirdPartyPath
     {
@@ -94,8 +98,8 @@ public class GGPOSteam : ModuleRules
         string GGPOLib = Path.Combine(LibrariesPath, "GGPO.lib");
         string GGPOInclude = Path.Combine(ExternalPath, "ggpo/src/include");
 
-        System.Console.WriteLine("GGPO Library Path: " + GGPOLib);
-        System.Console.WriteLine("GGPO Include Path: " + GGPOInclude);
+        //System.Console.WriteLine("GGPO Library Path: " + GGPOLib);
+        //System.Console.WriteLine("GGPO Include Path: " + GGPOInclude);
 
         PublicAdditionalLibraries.Add(GGPOLib);
         PublicIncludePaths.Add(GGPOInclude);
@@ -105,7 +109,7 @@ public class GGPOSteam : ModuleRules
         // --------------------------------------------------------------
         System.Console.WriteLine("Building GGPO library...");
 
-        string BuildScriptPath = Path.Combine(ProjectRootPath, "BuildGGPO.ps1");
+        string BuildScriptPath = Path.Combine(PluginRootPath, "BuildGGPO.ps1");
         string BuildScriptConfig = bDebug ? "Debug" : "Release";
         string BuildCommand = $"powershell -ExecutionPolicy Bypass -File {BuildScriptPath} -BuildConfig \"{BuildScriptConfig}\" -SteamworksPath \"{SteamworksPath}\"";
 

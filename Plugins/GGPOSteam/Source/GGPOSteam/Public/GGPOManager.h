@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "ggponet.h"
-//#include "steam/steam_api.h"
+#include "steam/steam_api.h"
 #include "UObject/WeakObjectPtr.h"
 
 #define GGPO_MAX_PLAYERS 4
@@ -18,7 +18,7 @@ typedef unsigned char byte;
 struct FGGPOPlayerConnectionInfo
 {
 	GGPOPlayerType Type;
-	//CSteamID SteamID;
+	CSteamID SteamID;
 	//FString IPAddress;
 	//int Port;
 };
