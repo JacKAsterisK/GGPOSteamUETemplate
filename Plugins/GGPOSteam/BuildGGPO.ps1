@@ -82,7 +82,9 @@ if (-not (Test-Path "$GGPOSourceDir/build/CMakeCache.txt")) {
     }
 
     Add-Log "Steamworks path: $SteamworksPath"
-    .\configure_windows.cmd --no-prompt "$SteamworksPath"
+    $FormattedPath = $SteamworksPath -replace " ", "|"
+    Add-Log (.\configure_windows.cmd --no-prompt "$FormattedPath")
+    Add-Log "GGPO configuration completed."
 }
 
 # ----------------------------------------------------
