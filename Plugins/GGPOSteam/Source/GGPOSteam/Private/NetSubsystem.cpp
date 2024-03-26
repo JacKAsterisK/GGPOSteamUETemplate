@@ -110,18 +110,38 @@ void UNetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		}
 	}
 
+	bSteamInitialized = false;
+
+	try
+	{
+		bSteamInitialized = SteamAPI_Init();
+	}
+	catch (...)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to initialize Steam!"));
+	}
+
+	if (bSteamInitialized)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Steam initialized!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed to initialize Steam!"));
+	}
+
 	bIsInitialized = true;
 }
 
 void UNetSubsystem::Deinitialize()
 {
-	if (SteamAPI_Init())
+	if (bSteamInitialized)
 	{
 		SteamAPI_Shutdown();
 	}
 
 	bIsInitialized = false;
-	//bSteamInitialized = false;
+	bSteamInitialized = false;
 }
 
 //void UNetSubsystem::OnLobbyMatchList(LobbyMatchList_t* pParam, bool bIOFailure)
@@ -162,8 +182,7 @@ void UNetSubsystem::OnStartSessionComplete(FName InSessionName, bool bWasSuccess
 
 void UNetSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 {
-	// Populate the sessions array
-	TArray<FSession> Sessions;
+	SessionSearchResults.Empty();
 
 	if (bWasSuccessful)
 	{
@@ -177,8 +196,16 @@ void UNetSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 			Session.ID = SessionID;
 			Session.Name = SearchResult.Session.SessionSettings.Settings.FindRef("name").Data.ToString();
 
-			Sessions.Add(Session);
+			USessionSearchResult* Result = NewObject<USessionSearchResult>();
+			Result->SetSession(Session);
+			SessionSearchResults.Add(Result);
 		}
+
+		OnSessionsFound.Broadcast(SessionSearchResults);
+	}
+	else
+	{
+		OnSessionFindFailure.Broadcast(TEXT("Failed to find sessions!"));
 	}
 }
 

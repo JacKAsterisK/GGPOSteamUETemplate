@@ -111,7 +111,7 @@ public class GGPOSteam : ModuleRules
 
         string BuildScriptPath = Path.Combine(PluginRootPath, "BuildGGPO.ps1");
         string BuildScriptConfig = bDebug ? "Debug" : "Release";
-        string BuildCommand = $"powershell -ExecutionPolicy Bypass -File {BuildScriptPath} -BuildConfig \"{BuildScriptConfig}\" -SteamworksPath \"{SteamworksPath}\"";
+        string BuildCommand = $"powershell -ExecutionPolicy Bypass -File \"{BuildScriptPath}\" -BuildConfig \"{BuildScriptConfig}\" -SteamworksPath \"{SteamworksPath}\"";
 
         System.Console.WriteLine(BuildCommand);
 

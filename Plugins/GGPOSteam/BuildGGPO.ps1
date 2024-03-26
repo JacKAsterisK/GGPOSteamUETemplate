@@ -11,7 +11,7 @@ param (
 $ErrorActionPreference = "Stop"
 
 # Set GGPO's source directory
-$ProjectRoot = $PSScriptRoot
+$ProjectRoot = Join-Path $PSScriptRoot "..\.."
 $GGPOSourceDir = "$ProjectRoot/External/ggpo"
 
 if (-not (Test-Path $GGPOSourceDir)) {
