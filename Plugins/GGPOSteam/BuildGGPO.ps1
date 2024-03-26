@@ -11,8 +11,8 @@ param (
 $ErrorActionPreference = "Stop"
 
 # Set GGPO's source directory
-$ProjectRoot = Join-Path $PSScriptRoot "..\.."
-$GGPOSourceDir = "$ProjectRoot/External/ggpo"
+$ProjectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
+$GGPOSourceDir = Resolve-Path "$ProjectRoot/External/ggpo"
 
 if (-not (Test-Path $GGPOSourceDir)) {
     New-Item -ItemType Directory -Path $GGPOSourceDir | Out-Null
@@ -82,8 +82,8 @@ if (-not (Test-Path "$GGPOSourceDir/build/CMakeCache.txt")) {
     }
 
     Add-Log "Steamworks path: $SteamworksPath"
-    $FormattedPath = $SteamworksPath -replace " ", "|"
-    Add-Log (.\configure_windows.cmd --no-prompt "$FormattedPath")
+    $FormattedPath = $SteamworksPath -replace " ", "~"
+    Add-Log (& "$GGPOSourceDir/configure_windows.cmd" --no-prompt "$FormattedPath")
     Add-Log "GGPO configuration completed."
 }
 
