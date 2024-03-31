@@ -7,7 +7,6 @@ public class GGPOSteam : ModuleRules
 {
     const string STEAMWORKS_VERSION = "153";
     const int STEAM_APP_ID = 480;
-    const int STEAM_APP_ID = 480;
 
     public GGPOSteam(ReadOnlyTargetRules Target) : base(Target)
 	{
@@ -58,8 +57,6 @@ public class GGPOSteam : ModuleRules
 		);
 
         AddGGPO();
-
-        EnsureSteamAppFile(STEAM_APP_ID);
 
         EnsureSteamAppFile(STEAM_APP_ID);
     }
