@@ -105,6 +105,9 @@ protected:
 	bool bSteamInitialized = false;
 	//bool bUseSteam = true;
 
+	CSteamID SteamID;
+	FUniqueNetIdPtr NetID;
+
 	IOnlineSubsystem* OnlineSub;
 	IOnlineSessionPtr SessionInterface;
 	TSharedPtr<FOnlineSessionSearch> SessionSearch;
@@ -128,6 +131,8 @@ protected:
     virtual void Deinitialize() override;
 
 	//void OnLobbyMatchList(LobbyMatchList_t* pParam, bool bIOFailure);
+
+	void OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
 
 	void OnCreateSessionComplete(FName InSessionName, bool bWasSuccessful);
 	void OnStartSessionComplete(FName InSessionName, bool bWasSuccessful);

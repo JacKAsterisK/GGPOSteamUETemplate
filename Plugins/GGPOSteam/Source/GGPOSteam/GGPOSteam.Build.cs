@@ -6,6 +6,7 @@ using UnrealBuildTool;
 public class GGPOSteam : ModuleRules
 {
     const string STEAMWORKS_VERSION = "153";
+    const int STEAM_APP_ID = 480;
 
     public GGPOSteam(ReadOnlyTargetRules Target) : base(Target)
 	{
@@ -56,6 +57,8 @@ public class GGPOSteam : ModuleRules
 		);
 
         AddGGPO();
+
+        EnsureSteamAppFile(STEAM_APP_ID);
     }
 
     private string PluginRootPath
@@ -123,5 +126,19 @@ public class GGPOSteam : ModuleRules
 
         System.Console.WriteLine("GGPO library build complete.");
         // --------------------------------------------------------------
+    }
+
+    /// <summary>
+    /// Puts steam_appid.txt in the binaries directory if it doesn't exist. Defaults to 480 (Spacewar) if not specified.
+    /// </summary>
+    void EnsureSteamAppFile(int AppID = 480)
+    {
+        string BinariesDir = Path.Combine(ProjectRootPath, "Binaries/Win64");
+        string SteamAppIDFile = Path.Combine(BinariesDir, "steam_appid.txt");
+
+        if (!File.Exists(SteamAppIDFile))
+        {
+            File.WriteAllText(SteamAppIDFile, AppID.ToString());
+        }
     }
 }

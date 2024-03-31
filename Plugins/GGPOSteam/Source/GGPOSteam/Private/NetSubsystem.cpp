@@ -3,6 +3,8 @@
 
 #include "NetSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
 
 void UNetSubsystem::CreateSession(const FString& Name)
 {
@@ -17,7 +19,7 @@ void UNetSubsystem::CreateSession(const FString& Name)
 	SessionSettings.bAllowJoinInProgress = true;
 	SessionSettings.bAllowInvites = true;
 	SessionSettings.bAllowJoinViaPresence = true;
-	//SessionSettings.bAllowJoinViaPresenceFriendsOnly = true;
+	SessionSettings.bAllowJoinViaPresenceFriendsOnly = true;
 	SessionSettings.bIsDedicated = false;
 	SessionSettings.bUsesPresence = !bIsLAN;
 	SessionSettings.bUseLobbiesIfAvailable = true;
@@ -53,7 +55,7 @@ void UNetSubsystem::FindSessions()
 		SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, true, EOnlineComparisonOp::Equals); // Example: searching for sessions with presence
 
 		// Start the session search
-		SessionInterface->FindSessions(0, SessionSearch.ToSharedRef());
+		SessionInterface->FindSessions(*NetID, SessionSearch.ToSharedRef());
 	}
 
 	//if (bUseSteam)
@@ -90,7 +92,11 @@ void UNetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		FName SubsystemName = OnlineSub->GetSubsystemName();
 		UE_LOG(LogTemp, Log, TEXT("Current online subsystem: %s"), *SubsystemName.ToString());
 
-		SessionInterface = OnlineSub->GetSessionInterface();
+		// Login to the online subsystem
+		OnlineSub->GetIdentityInterface()->AddOnLoginCompleteDelegate_Handle(0, FOnLoginCompleteDelegate::CreateUObject(this, &UNetSubsystem::OnLoginComplete));
+		OnlineSub->GetIdentityInterface()->AutoLogin(0);
+
+		SessionInterface = Online::GetSessionInterface(GetWorld());//OnlineSub->GetSessionInterface();
 		if (SessionInterface.IsValid())
 		{
 			// Add all the delegates we need
@@ -110,16 +116,8 @@ void UNetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		}
 	}
 
-	bSteamInitialized = false;
-
-	try
-	{
-		bSteamInitialized = SteamAPI_Init();
-	}
-	catch (...)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to initialize Steam!"));
-	}
+	bSteamInitialized = SteamAPI_Init();
+	SteamID = SteamUser()->GetSteamID();
 
 	if (bSteamInitialized)
 	{
@@ -142,6 +140,20 @@ void UNetSubsystem::Deinitialize()
 
 	bIsInitialized = false;
 	bSteamInitialized = false;
+}
+
+void UNetSubsystem::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
+{
+	if (bWasSuccessful)
+	{
+		NetID = UserId.AsShared();
+
+		UE_LOG(LogTemp, Log, TEXT("Logged in successfully!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Failed to log in!"));
+	}
 }
 
 //void UNetSubsystem::OnLobbyMatchList(LobbyMatchList_t* pParam, bool bIOFailure)
