@@ -18,7 +18,7 @@ typedef unsigned char byte;
 struct FGGPOPlayerConnectionInfo
 {
 	GGPOPlayerType Type;
-	CSteamID SteamID;
+	CSteamID SteamId;
 	//FString IPAddress;
 	//int Port;
 };

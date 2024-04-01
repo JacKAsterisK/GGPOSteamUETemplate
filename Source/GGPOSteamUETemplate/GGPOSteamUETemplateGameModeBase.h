@@ -14,4 +14,6 @@ class GGPOSTEAMUETEMPLATE_API AGGPOSteamUETemplateGameModeBase : public AGameMod
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };
