@@ -174,7 +174,7 @@ FName UGGPONetSubsystem::GetPlayerIdFromController(const APlayerController* Play
 
 void UGGPONetSubsystem::ServerTravel(const FString& MapName)
 {
-	GetWorld()->ServerTravel(MapName, true, true);
+	GetWorld()->ServerTravel(MapName + FString("?listen"), false, false);
 }
 
 void UGGPONetSubsystem::ClientTravel(const FString& MapName)
@@ -312,12 +312,12 @@ void UGGPONetSubsystem::OnLoginComplete(int32 LocalUserNum, bool bWasSuccessful,
 void UGGPONetSubsystem::OnCreateSessionComplete(FName InSessionName, bool bWasSuccessful)
 {
 	bIsServer = true;
-	OnSessionCreated.Broadcast(bWasSuccessful);
+	SessionInterface->StartSession(InSessionName);
 }
 
 void UGGPONetSubsystem::OnStartSessionComplete(FName InSessionName, bool bWasSuccessful)
 {
-
+	OnSessionCreated.Broadcast(bWasSuccessful);
 }
 
 void UGGPONetSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
@@ -352,6 +352,19 @@ void UGGPONetSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 
 void UGGPONetSubsystem::OnJoinSessionComplete(FName InSessionName, EOnJoinSessionCompleteResult::Type Result)
 {
+	if (Result != EOnJoinSessionCompleteResult::Success)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Failed to join session!"));
+		return;
+	}
+
+	// Client travel to CurrentSession
+	FString ConnectionInfo;
+	SessionInterface->GetResolvedConnectString(InSessionName, ConnectionInfo);
+	//FString ConnectionString = FString("/Game/Lobby/MAP_Lobby?" + ConnectionInfo);
+	FString ConnectionString = ConnectionInfo;
+	ClientTravel(ConnectionString);
+
 	OnSessionJoined.Broadcast(CurrentSession);
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Joined session!"));
 }
