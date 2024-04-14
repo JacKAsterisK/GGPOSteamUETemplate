@@ -11,6 +11,8 @@ Author: JacKAsterisK
 #include "OnlineSessionSettings.h"
 #include "OnlineSubsystem.h"
 #include "OnlineSubsystemUtils.h"
+#include "GameFramework/PlayerState.h"
+#include "Online/OnlineSessionNames.h"
 
 void UGGPONetSubsystem::UpdatePlayerList(const TArray<FPlayerInfo>& InPlayers)
 {

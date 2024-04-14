@@ -8,8 +8,8 @@ public class GGPOSteamUETemplateTarget : TargetRules
 	public GGPOSteamUETemplateTarget( TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
-		DefaultBuildSettings = BuildSettingsVersion.V2;
-		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_1;
-		ExtraModuleNames.Add("GGPOSteamUETemplate");
+        DefaultBuildSettings = BuildSettingsVersion.V5;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+        ExtraModuleNames.Add("GGPOSteamUETemplate");
 	}
 }
