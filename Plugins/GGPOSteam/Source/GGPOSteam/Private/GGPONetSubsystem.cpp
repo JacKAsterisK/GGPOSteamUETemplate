@@ -238,9 +238,9 @@ void UGGPONetSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UGGPONetSubsystem::Deinitialize()
 {
-	if (bSteamInitialized)
+	if (SessionInterface)
 	{
-		SteamAPI_Shutdown();
+		SessionInterface->EndSession(GameSessionName);
 	}
 
 	bIsServer = false;
@@ -363,8 +363,8 @@ void UGGPONetSubsystem::OnJoinSessionComplete(FName InSessionName, EOnJoinSessio
 	// Client travel to CurrentSession
 	FString ConnectionInfo;
 	SessionInterface->GetResolvedConnectString(InSessionName, ConnectionInfo);
-	FString ConnectionString = FString("/Game/Lobby/MAP_Lobby?" + ConnectionInfo);
-	//FString ConnectionString = ConnectionInfo;
+	//FString ConnectionString = FString("/Game/Lobby/MAP_Lobby?" + ConnectionInfo);
+	FString ConnectionString = ConnectionInfo;
 	ClientTravel(ConnectionString);
 
 	OnSessionJoined.Broadcast(CurrentSession);

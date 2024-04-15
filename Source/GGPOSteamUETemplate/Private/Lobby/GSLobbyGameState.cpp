@@ -2,6 +2,7 @@
 
 
 #include "Lobby/GSLobbyGameState.h"
+#include "Lobby/GSLobbyPlayerState.h"
 #include "Net/UnrealNetwork.h"
 
 AGSLobbyGameState* AGSLobbyGameState::GetLobbyGameState(UObject* WorldContextObject)
@@ -10,14 +11,14 @@ AGSLobbyGameState* AGSLobbyGameState::GetLobbyGameState(UObject* WorldContextObj
 	return Cast<AGSLobbyGameState>(GameState);
 }
 
-void AGSLobbyGameState::Server_RequestPlayerList_Implementation()
+void AGSLobbyGameState::RequestPlayerList()
 {
-	Multicast_UpdatePlayerList(GGPONetSubsystem->GetPlayerInfo());
-}
+	if (GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
 
-bool AGSLobbyGameState::Server_RequestPlayerList_Validate()
-{
-	return true;
+	Multicast_UpdatePlayerList(GGPONetSubsystem->GetPlayerInfo());
 }
 
 void AGSLobbyGameState::Multicast_UpdatePlayerList_Implementation(const TArray<FPlayerInfo>& PlayerList)
@@ -52,7 +53,12 @@ void AGSLobbyGameState::BeginPlay()
 	else
 	{
 		GGPONetSubsystem->ClearPlayerList();
-		Server_RequestPlayerList();
+
+		AGSLobbyPlayerState* LobbyPlayerState = GetWorld()->GetFirstPlayerController()->GetPlayerState<AGSLobbyPlayerState>();
+		if (LobbyPlayerState)
+		{
+			LobbyPlayerState->Server_RequestPlayerList();
+		}
 	}
 }
 

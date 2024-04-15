@@ -28,8 +28,8 @@ public:
 	UFUNCTION(BlueprintCallable, meta = (WorldContext = "WorldContextObject"), Category = "Lobby")
 	static AGSLobbyGameState* GetLobbyGameState(UObject* WorldContextObject);
 
-	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation, Category = "Lobby")
-	void Server_RequestPlayerList();
+	UFUNCTION(BlueprintCallable, Category = "Lobby")
+	void RequestPlayerList();
 
 	UFUNCTION(NetMulticast, Reliable, Category = "Lobby")
 	void Multicast_UpdatePlayerList(const TArray<FPlayerInfo>& PlayerList);
