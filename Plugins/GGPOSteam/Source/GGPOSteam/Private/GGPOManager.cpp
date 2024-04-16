@@ -1,14 +1,25 @@
 #include "GGPOManager.h"
+#include "GSim/GSim.h"
+#include "GGPONetSubsystem.h"
 
 #include "ProfilingDebugging/ScopedTimers.h"
 
 //DECLARE_CYCLE_STAT(TEXT("GGPO Tick"), STAT_GGPO_Tick, STATGROUP_FightSim);
 
-bool GGPOManager::InitializeGGPOSession(bool bInSyncTest)
+bool GGPOManager::InitializeGGPOSession(bool bInSyncTest, AGSim* InGSim)
 {
     if (GSession)
 	{
 		UE_LOG(LogTemp, Error, TEXT("GGPOManager::InitializeGGPOSession: Session already exists"));
+		return false;
+	}
+
+	GSim = InGSim;
+	GNetSubsystem = UGGPONetSubsystem::Get(InGSim);
+
+	if (!InGSim || !GNetSubsystem)
+	{
+		UE_LOG(LogTemp, Error, TEXT("GGPOManager::InitializeGGPOSession: Invalid GSim or GNetSubsystem"));
 		return false;
 	}
 
@@ -26,97 +37,99 @@ bool GGPOManager::InitializeGGPOSession(bool bInSyncTest)
     cb.free_buffer = GGPOManager::FreeBufferCallback;
     cb.on_event = GGPOManager::OnEventCallback;
 
-    NumPlayers = 2;// TODO: NetManager->GetNumPlayers();
-    bLocalOnly = !bSyncTest ;// TODO: && NetManager->GetLocalPlayers(FightSim->GetWorld()).Num() == NumPlayers;
+	TArray<UGGPOPlayer*> Players = GNetSubsystem->GetPlayerList();
+    NumPlayers = Players.Num();
+    bLocalOnly = !bSyncTest && GNetSubsystem->GetLocalPlayers().Num() == NumPlayers;
 
     int InputDelay = 2;// TODO:UFightSimSubsystem::Get(InNetManager->GetWorld())->InputDelayFrames;
 
-  //  if (!bLocalOnly)
-  //  {
-  //      // Initialize GGPO session
-  //      int MaxSerializedSize = 1;// TODO: FFightInputState::GetMaxSerializedSize();
+    if (!bLocalOnly)
+    {
+        // Initialize GGPO session
+        int MaxSerializedSize = 1;// TODO: FFightInputState::GetMaxSerializedSize();
 
-  //      if (bSyncTest)
-		//{
-  //          GGPOErrorCode result = ggpo_start_synctest(&GSession, &cb, "KeepersCrucible", NumPlayers, MaxSerializedSize, 1);
-		//}
-  //      else
-  //      {
-  //          GGPOErrorCode result = ggpo_start_session(&GSession, &cb, "KeepersCrucible", NumPlayers, MaxSerializedSize, 7000);
-  //      }
+		char gameName[] = "GGPOSteam";
+        if (bSyncTest)
+		{
+            GGPOErrorCode result = ggpo_start_synctest(&GSession, &cb, gameName, NumPlayers, MaxSerializedSize, 1);
+		}
+        else
+        {
+            GGPOErrorCode result = ggpo_start_session(&GSession, &cb, gameName, NumPlayers, MaxSerializedSize, 7000);
+        }
 
-  //      // automatically disconnect clients after 3000 ms and start our count-down timer
-  //      // for disconnects after 1000 ms.   To completely disable disconnects, simply use
-  //      // a value of 0 for ggpo_set_disconnect_timeout.
-  //      ggpo_set_disconnect_timeout(GSession, 3000);
-  //      ggpo_set_disconnect_notify_start(GSession, 1000);
+        // automatically disconnect clients after 3000 ms and start our count-down timer
+        // for disconnects after 1000 ms.   To completely disable disconnects, simply use
+        // a value of 0 for ggpo_set_disconnect_timeout.
+        ggpo_set_disconnect_timeout(GSession, 3000);
+        ggpo_set_disconnect_notify_start(GSession, 1000);
 
-  //      //ggpo_set_steam_legacy_messages(GSession, true);
+        //ggpo_set_steam_legacy_messages(GSession, true);
 
-  //      // Add players to the GGPO session
-  //      for (int i = 0; i < NetManager->PlayerInfos.Num(); ++i)
-  //      {
-  //          UFightPlayerInfo* PlayerInfo = NetManager->PlayerInfos[i];
+        // Add players to the GGPO session
+        for (int i = 0; i < Players.Num(); ++i)
+        {
+			UGGPOPlayer* Player = Players[i];
 
-  //          GGPOPlayer player = {0};
-  //          FMemory::Memset(&player, 0, sizeof(player));
-  //          player.size = sizeof(player);
-  //          player.player_num = NetManager->GetPlayerIndex(PlayerInfo->GetPlayerId()) + 1;
-  //          if (PlayerInfo->bIsLocal && !PlayerInfo->IsSpectator())
-  //          {
-  //              player.type = GGPOPlayerType::GGPO_PLAYERTYPE_LOCAL;
-  //          }
-  //          else if (!PlayerInfo->bIsLocal && !PlayerInfo->IsSpectator())
-		//    {
-  //              player.type = GGPOPlayerType::GGPO_PLAYERTYPE_REMOTE;
-  //              player.u.remote.steam_id = PlayerInfo->GetSteamId().ConvertToUint64();
-  //              //player.u.remote.ip_address = /* Retrieve IP from SessionInterface and PlayerNetIds */;
-  //              //player.u.remote.port = /* Retrieve Port from SessionInterface and PlayerNetIds */;
-		//    }
-		//    else
-		//    {
-  //              player.type = GGPOPlayerType::GGPO_PLAYERTYPE_SPECTATOR;
-		//    }
+            GGPOPlayer player = {0};
+            FMemory::Memset(&player, 0, sizeof(player));
+            player.size = sizeof(player);
+            player.player_num = i + 1;//NetManager->GetPlayerIndex(PlayerInfo->GetPlayerId()) + 1;
+            if (Player->IsLocal())// && !PlayerInfo.IsSpectator())
+            {
+                player.type = GGPOPlayerType::GGPO_PLAYERTYPE_LOCAL;
+            }
+            else if (!Player->IsLocal())// && !PlayerInfo->IsSpectator())
+		    {
+                player.type = GGPOPlayerType::GGPO_PLAYERTYPE_REMOTE;
+                player.u.remote.steam_id = Player->GetSteamId().ConvertToUint64();
+                //player.u.remote.ip_address = /* Retrieve IP from SessionInterface and PlayerNetIds */;
+                //player.u.remote.port = /* Retrieve Port from SessionInterface and PlayerNetIds */;
+		    }
+		    //else
+		    //{
+      //          player.type = GGPOPlayerType::GGPO_PLAYERTYPE_SPECTATOR;
+		    //}
 
-  //          PlayerInfo->GGPOState.Type = player.type;
+            Player->GGPOState.Type = player.type;
 
-  //          GGPOErrorCode addPlayerResult = ggpo_add_player(GSession, &player, &PlayerInfo->GGPOState.Handle);
-  //          if (FAILED(addPlayerResult))
-  //          {
-  //              // Handle error in adding player
-  //          }
+            GGPOErrorCode addPlayerResult = ggpo_add_player(GSession, &player, &Player->GGPOState.Handle);
+            if (FAILED(addPlayerResult))
+            {
+                // Handle error in adding player
+            }
 
-  //          switch (PlayerInfo->GGPOState.Type)
-		//	{
-		//		case GGPO_PLAYERTYPE_LOCAL:
-		//		{
-  //                  PlayerInfo->GGPOState.ConnectProgress = 100;
-  //                  PlayerInfo->GGPOState.SetConnectState(GGPOPlayerConnectState::Connecting);
-  //                  ggpo_set_frame_delay(GSession, PlayerInfo->GetGGPOHandle(), InputDelay);
-		//			break;
-		//		}
-		//		case GGPO_PLAYERTYPE_REMOTE:
-		//		{
-		//			//PlayerInfo->GGPOState.SetConnectState(GGPOPlayerConnectState::Initializing);
-		//			break;
-		//		}
-		//		case GGPO_PLAYERTYPE_SPECTATOR:
-		//		{
-		//			//PlayerInfo->GGPOState.SetConnectState(GGPOPlayerConnectState::Connecting);
-		//			break;
-		//		}
-		//	}
+            switch (Player->GGPOState.Type)
+			{
+				case GGPO_PLAYERTYPE_LOCAL:
+				{
+					Player->GGPOState.ConnectProgress = 100;
+					Player->GGPOState.SetConnectState(GGPOPlayerConnectState::Connecting);
+                    ggpo_set_frame_delay(GSession, Player->GetGGPOHandle(), InputDelay);
+					break;
+				}
+				case GGPO_PLAYERTYPE_REMOTE:
+				{
+					//PlayerInfo->GGPOState.SetConnectState(GGPOPlayerConnectState::Initializing);
+					break;
+				}
+				case GGPO_PLAYERTYPE_SPECTATOR:
+				{
+					//PlayerInfo->GGPOState.SetConnectState(GGPOPlayerConnectState::Connecting);
+					break;
+				}
+			}
 
-  //          PlayerInfo->GGPOState.bIsInitialized = true;
-  //      }
+			Player->GGPOState.bIsInitialized = true;
+        }
 
-  //      // More initialization code here (e.g., setting initial game state)
-  //      LastTick = FPlatformTime::Seconds();
-  //      WaitFrames = 0;
-  //  }
+        // More initialization code here (e.g., setting initial game state)
+        LastTick = FPlatformTime::Seconds();
+        WaitFrames = 0;
+    }
 
-  //  FightSim->BeginSim();
-  //  FightSim->StoreState(0);
+    GSim->BeginSim();
+    //GSim->StoreState(0);
 
     return true;
 }

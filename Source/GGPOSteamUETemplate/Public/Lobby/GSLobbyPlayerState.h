@@ -20,4 +20,7 @@ public:
 
 	UFUNCTION(BlueprintCallable, Server, Reliable, WithValidation, Category = "Lobby")
 	void Server_RequestPlayerList();
+
+protected:
+	virtual void BeginPlay() override;
 };

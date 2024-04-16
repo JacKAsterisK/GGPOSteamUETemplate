@@ -14,6 +14,13 @@ Author: JacKAsterisK
 #include "GameFramework/PlayerState.h"
 #include "Online/OnlineSessionNames.h"
 
+UGGPONetSubsystem* UGGPONetSubsystem::Get(UObject* WorldContextObject)
+{
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::Assert);
+	UGameInstance* GameInstance = World ? World->GetGameInstance() : nullptr;
+	return GameInstance ? GameInstance->GetSubsystem<UGGPONetSubsystem>() : nullptr;
+}
+
 void UGGPONetSubsystem::UpdatePlayerList(const TArray<FPlayerInfo>& InPlayers)
 {
 	Players.Empty();
@@ -104,6 +111,23 @@ void UGGPONetSubsystem::JoinSession(USessionSearchResult* Session)
 		CurrentSession = Session;
 		SessionInterface->JoinSession(NetIDRef, GameSessionName, Session->GetSearchResult());
 	}
+}
+
+UGGPOPlayer* UGGPONetSubsystem::GetPlayerFromState(const APlayerState* PlayerState) const
+{
+	if (PlayerState)
+	{
+		FName PlayerNetId = FName(PlayerState->GetUniqueId().GetUniqueNetId()->ToString());
+		for (UGGPOPlayer* Player : Players)
+		{
+			if (Player->GetPlayerInfo().NetId == PlayerNetId)
+			{
+				return Player;
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 void UGGPONetSubsystem::AddPlayer(APlayerController* PlayerController)

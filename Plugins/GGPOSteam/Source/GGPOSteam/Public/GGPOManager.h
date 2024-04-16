@@ -10,8 +10,8 @@
 
 #define GGPO_MAX_PLAYERS 4
 
-class UNetManager;
-class UFightSim;
+class UGGPONetSubsystem;
+class AGSim;
 
 typedef unsigned char byte;
 
@@ -27,6 +27,8 @@ class GGPOManager
 {
 private:
 	inline static GGPOSession* GSession = nullptr;
+	inline static UGGPONetSubsystem* GNetSubsystem = nullptr;
+	inline static AGSim* GSim = nullptr;
 
 	//static GGPOPlayerConnectionInfo PlayerConnections[GGPO_MAX_PLAYERS];
 	inline static int NumPlayers;
@@ -44,7 +46,7 @@ public:
 	inline static int RemoteChecksum = 0;
 
 public:
-	static bool InitializeGGPOSession(bool bInSyncTest);
+	static bool InitializeGGPOSession(bool bInSyncTest, AGSim* InGSim);
 	static bool InitializeGGPOSpectatorSession();
 	static bool DestroyGGPOSession();
 

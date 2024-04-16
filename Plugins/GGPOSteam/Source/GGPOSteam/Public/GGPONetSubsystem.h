@@ -13,6 +13,7 @@ Author: JacKAsterisK
 #include "OnlineSessionSettings.h"
 #include "Interfaces\OnlineSessionInterface.h"
 #include "SteamHelpers.h"
+#include "ggponet.h"
 
 #include "GGPONetSubsystem.generated.h"
 
@@ -53,6 +54,59 @@ public:
 	const FOnlineSessionSearchResult& GetSearchResult() const { return Session.SearchResult; }
 };
 
+struct GGPOChecksumInfo {
+	int Frame;
+	int Checksum;
+};
+
+enum GGPOPlayerConnectState
+{
+	Connecting = 0,
+	Synchronizing,
+	Running,
+	Disconnected,
+	Disconnecting,
+};
+
+struct GGPOPlayerConnectionInfo
+{
+public:
+	bool bIsInitialized;
+	GGPOPlayerType Type;
+	GGPOPlayerHandle Handle;
+	GGPOPlayerConnectState ConnectState;
+	int ConnectProgress;
+	int DisconnectTimeout;
+	int DisconnectStart;
+
+	GGPOPlayerConnectionInfo()
+		: Type(GGPOPlayerType::GGPO_PLAYERTYPE_SPECTATOR)
+		, Handle(-1)
+		, ConnectState(GGPOPlayerConnectState::Disconnected)
+		, ConnectProgress(0)
+		, DisconnectTimeout(0)
+		, DisconnectStart(0)
+	{}
+
+	void SetConnectState(GGPOPlayerConnectState NewState)
+	{
+		ConnectState = NewState;
+		ConnectProgress = 0;
+	}
+
+	void SetDisconnectTimeout(int When, int Timeout)
+	{
+		DisconnectStart = When;
+		DisconnectTimeout = Timeout;
+		ConnectState = GGPOPlayerConnectState::Disconnecting;
+	}
+
+	void UpdateConnectProgress(int Progress)
+	{
+		ConnectProgress = Progress;
+	}
+};
+
 USTRUCT(BlueprintType)
 struct FPlayerInfo
 {
@@ -77,12 +131,18 @@ struct FPlayerInfo
 
 	UPROPERTY(BlueprintReadOnly, Category = "GGPOPlayer|Info")
 	bool bIsReady { false };
+
+	UPROPERTY(BlueprintReadOnly, Category = "GGPOPlayer|Info")
+	bool bIsLoaded { false };
 };
 
 UCLASS(BlueprintType)
 class GGPOSTEAM_API UGGPOPlayer : public UObject
 {
 	GENERATED_BODY()
+
+public:
+	GGPOPlayerConnectionInfo GGPOState;
 
 protected:
 	FPlayerInfo Player;
@@ -103,20 +163,33 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
 	const FPlayerInfo& GetPlayerInfo() const { return Player; }
 
+	GGPOPlayerHandle GetGGPOHandle() const { return GGPOState.Handle; }
+
 	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
 	int32 GetPlayerId() const { return Player.PlayerId; }
 
 	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
 	FName GetNetId() const { return Player.NetId; }
 
+	CSteamID GetSteamId() const { return Player.SteamId; }
+
 	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
 	const FName& GetName() const { return Player.Name; }
+
+	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
+	bool IsLocal() const { return Player.bIsLocal; }
 
 	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
 	bool IsReady() const { return Player.bIsReady; }
 
 	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
 	bool SetIsReady(bool bReady) { return Player.bIsReady = bReady; }
+
+	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
+	bool IsLoaded() const { return Player.bIsLoaded; }
+
+	UFUNCTION(BlueprintCallable, Category = "GGPOPlayer")
+	void SetIsLoaded(bool bLoaded) { Player.bIsLoaded = bLoaded; }
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSessionCreated, bool, bWasSuccessful);
@@ -183,6 +256,9 @@ protected:
 	//CCallResult<UGGPONetSubsystem, LobbyMatchList_t> SteamCallResultLobbies;
 
 public:
+	UFUNCTION(BlueprintCallable, Meta = (WorldContext = "WorldContextObject"), Category = "NetSubsystem")
+	static UGGPONetSubsystem* Get(UObject* WorldContextObject);
+
 	void UpdatePlayerList(const TArray<FPlayerInfo>& InPlayers);
 
 	UFUNCTION(BlueprintCallable, Category = "NetSubsystem")
@@ -195,7 +271,12 @@ public:
 	void JoinSession(USessionSearchResult* Session);
 
 	UFUNCTION(BlueprintCallable, Category = "NetSubsystem")
-	const TArray<UGGPOPlayer*>& GetPlayerList() { return Players; }
+	TArray<UGGPOPlayer*>& GetPlayerList() { return Players; }
+
+	UFUNCTION(BlueprintCallable, Category = "NetSubsystem")
+	UGGPOPlayer* GetPlayerFromState(const APlayerState* PlayerState) const;
+
+	TArray<UGGPOPlayer*> GetLocalPlayers() const { return Players.FilterByPredicate([](UGGPOPlayer* Player) { return Player->GetPlayerInfo().bIsLocal; }); }
 
 	TArray<FPlayerInfo> GetPlayerInfo() const
 	{

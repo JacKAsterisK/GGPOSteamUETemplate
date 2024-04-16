@@ -18,11 +18,28 @@ AGSLobbyPlayerState* AGSLobbyPlayerState::GetFirstLocalLobbyPlayerState(UObject*
 		APlayerController* PlayerController = It->Get();
 		if (PlayerController && PlayerController->IsLocalPlayerController())
 		{
-			return Cast<AGSLobbyPlayerState>(PlayerController->PlayerState);
+			AGSLobbyPlayerState* LobbyPlayerState = Cast<AGSLobbyPlayerState>(PlayerController->PlayerState);
+			if (LobbyPlayerState)
+			{
+				return LobbyPlayerState;
+			}
 		}
 	}
 
 	return nullptr;
+}
+
+void AGSLobbyPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	APlayerController* PlayerController = GetPlayerController();
+	if (PlayerController && PlayerController->IsLocalPlayerController())
+	{
+		Server_RequestPlayerList();
+	}
+
+	Server_RequestPlayerList();
 }
 
 void AGSLobbyPlayerState::Server_RequestPlayerList_Implementation()

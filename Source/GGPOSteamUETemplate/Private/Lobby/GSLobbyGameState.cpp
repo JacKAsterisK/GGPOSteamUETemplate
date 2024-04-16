@@ -53,12 +53,6 @@ void AGSLobbyGameState::BeginPlay()
 	else
 	{
 		GGPONetSubsystem->ClearPlayerList();
-
-		AGSLobbyPlayerState* LobbyPlayerState = GetWorld()->GetFirstPlayerController()->GetPlayerState<AGSLobbyPlayerState>();
-		if (LobbyPlayerState)
-		{
-			LobbyPlayerState->Server_RequestPlayerList();
-		}
 	}
 }
 
